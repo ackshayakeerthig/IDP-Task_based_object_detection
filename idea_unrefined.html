@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>idea_unrefined.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$','$$'], ['\\[','\\]']]
+  }
+};
+</script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><link rel="stylesheet" href="./style.css"/>
+<h1 id="task-aware-object-detection-for-resource-constrained-edge-devices">Task-Aware Object Detection for Resource-Constrained Edge Devices</h1>
+<p><strong>Project Goal:</strong> To implement a lightweight, task-driven object detection pipeline on the VEGA Processor (FPGA) using the COCO dataset and 14 predefined tasks, optimizing for accuracy, latency, and power consumption.</p>
+<hr>
+<h2 id="1-system-overview">1. System Overview</h2>
+<p>The baseline system is designed as a <strong>Dual-Encoder Cross-Modal Pipeline</strong>. It processes two distinct inputs—a visual stream (image) and a semantic stream (text task)—and fuses them to produce a task-specific detection.</p>
+<h2 id="2-core-components">2. Core Components</h2>
+<h3 id="a-the-visual-encoder-yolov8-backbone">A. The Visual Encoder (YOLOv8 Backbone)</h3>
+<ul>
+<li><strong>Role:</strong> Extracts spatial and textural features from the input image.</li>
+<li><strong>Mechanism:</strong> Uses the CSPDarknet53 architecture. As the image passes through the convolutional layers, it is transformed into a <strong>Feature Map ($F_{img}$)</strong>.</li>
+<li><strong>Output:</strong> A multi-scale tensor representing the &quot;visual essence&quot; of the scene (edges, shapes, and object parts).</li>
+</ul>
+<h3 id="b-the-text-encoder-semantic-embedding">B. The Text Encoder (Semantic Embedding)</h3>
+<ul>
+<li><strong>Role:</strong> Converts the natural language task (e.g., &quot;Find something to sit on&quot;) into a numerical format the computer can understand.</li>
+<li><strong>Mechanism:</strong> A lightweight Transformer-based encoder (typically a distilled version of <strong>CLIP</strong> or <strong>DistilBERT</strong>).</li>
+<li><strong>Output:</strong> A <strong>Task Embedding Vector ($V_{task}$)</strong>. This vector lives in a &quot;semantic space&quot; where the word &quot;chair&quot; and the word &quot;sitting&quot; are mathematically close to each other.</li>
+</ul>
+<h3 id="c-the-fusion-layer-cross-modal-attention-fusion---cmaf">C. The Fusion Layer (Cross-Modal Attention Fusion - CMAF)</h3>
+<ul>
+<li><strong>Role:</strong> To &quot;highlight&quot; parts of the image that are relevant to the text task.</li>
+<li><strong>Mechanism:</strong> <strong>Attention Mechanism.</strong> The system calculates the relationship between every pixel in the feature map and the task vector.
+<ul>
+<li><strong>Query ($Q$):</strong> Derived from the Task Embedding.</li>
+<li><strong>Key ($K$):</strong> Derived from the Image Feature Map.</li>
+<li><strong>Value ($V$):</strong> The original visual data.</li>
+</ul>
+</li>
+<li><strong>Result:</strong> A &quot;weighted&quot; feature map where irrelevant objects (like a cat when the task is &quot;sitting&quot;) are mathematically suppressed, and relevant objects (like a chair) are amplified. <strong><strong>doubtful about implementing this, cuz multiplication will be heavy on fpga</strong></strong></li>
+</ul>
+<h3 id="d-the-detection-head">D. The Detection Head</h3>
+<ul>
+<li><strong>Role:</strong> To draw the final bounding box.</li>
+<li><strong>Mechanism:</strong> A regression layer that takes the fused features and predicts coordinates $(x, y, w, h)$ and a &quot;Task-Relevance Score.&quot;</li>
+</ul>
+<hr>
+<h2 id="3-hardware-optimization">3. Hardware Optimization</h2>
+<h3 id="fixed-integer-quantization-int8">Fixed-Integer Quantization (INT8)</h3>
+<p>The VEGA Processor and Genesys-2 FPGA are optimized for <strong>Fixed-Point Arithmetic</strong> rather than Floating-Point.</p>
+<ul>
+<li><strong>The Baseline Requirement:</strong> The model weights ($W$) and activations must be converted from 32-bit Decimals (Float32) to 8-bit Integers (INT8).</li>
+<li><strong>Implementation:</strong> This involves a <strong>Scaling Factor</strong>. For example, a decimal weight of <code>0.007</code> might be represented as the integer <code>2</code>.</li>
+<li><strong>Why it's required:</strong> Standard FPGAs lack the complex circuitry to do fast decimal math. Integer math is significantly faster and uses 4x less memory and power.</li>
+</ul>
+<hr>
+<h2 id="4-inference-workflow-summary">4. Inference Workflow (Summary)</h2>
+<ol>
+<li><strong>Input:</strong> User provides an Image ($I$) and a Task ($T$).</li>
+<li><strong>Encoding:</strong> Image goes through YOLO; Task goes through Text-Encoder.</li>
+<li><strong>Fusion:</strong> The Attention layer &quot;masks&quot; the image based on the Task.</li>
+<li><strong>Quantization:</strong> All math is performed using Fixed-Integer logic on the VEGA Processor.</li>
+<li><strong>Output:</strong> The system identifies the coordinates of the most appropriate object.</li>
+</ol>
+<hr>
+<h2 id="idea-1-task-conditional-dynamic-sparsity-gating">Idea 1: Task-Conditional Dynamic Sparsity (Gating)</h2>
+<h3 id="11-description">1.1 Description</h3>
+<p>This approach focuses on <strong>Computational Efficiency</strong>. Conventional models run the entire network architecture regardless of the task. Dynamic Sparsity introduces a &quot;Gating Mechanism&quot; that uses the task prompt to identify and &quot;switch off&quot; irrelevant feature channels in the YOLO backbone at runtime.</p>
+<ul>
+<li><strong>The Innovation:</strong> Instead of static pruning (permanent removal of weights), we use <strong>Runtime Gating</strong>. If the task is &quot;Cutting,&quot; the model suppresses features related to &quot;soft textures&quot; or &quot;organic shapes,&quot; focusing only on &quot;metallic/sharp&quot; features. This reduces the number of active multiplications, directly benefiting the FPGA's power profile.</li>
+</ul>
+<h3 id="12-existing-literature--similar-works">1.2 Existing Literature &amp; Similar Works</h3>
+<ul>
+<li><strong>Gated Linear Units (GLU):</strong> <em>Dauphin et al., &quot;Language Modeling with Gated Convolutional Networks&quot; (2017)</em>. Introduced the concept of using one neural path to gate another.</li>
+<li><strong>Dynamic Channel Pruning:</strong> <em>Gao et al., &quot;Dynamic Channel Pruning: Feature-Aware Optimization for Efficient Model Inference&quot; (2018)</em>. Focuses on skipping channels based on input images. <strong><strong>couldnt find the paper</strong></strong></li>
+<li><strong>Task-Aware Feature Modification:</strong> <em>Li et al., &quot;Task-Aware Feature Generation for Zero-Shot Object Detection&quot; (2020)</em>. Uses task information to modify how features are processed. <strong><strong>paper name wrong, inspect</strong></strong></li>
+</ul>
+<h3 id="13-state-of-the-art-sota">1.3 State-of-the-Art (SOTA)</h3>
+<ul>
+<li><strong>SOTA in Dynamic Networks:</strong> <em>Han et al., &quot;Dynamic Neural Networks: A Survey&quot; (2021)</em>. This is the comprehensive guide to networks that change their structure based on input.</li>
+<li><strong>SOTA in Hardware Gating:</strong> <em>Wang et al., &quot;SkipNet: Learning Dynamic Routing in Convolutional Networks&quot; (2018)</em>. Focuses on skipping entire layers to save energy on mobile hardware.</li>
+</ul>
+<hr>
+<h2 id="idea-2-semantic-affordance-knowledge-distillation-kd">Idea 2: Semantic Affordance Knowledge Distillation (KD)</h2>
+<h3 id="21-description">2.1 Description</h3>
+<p>This approach focuses on <strong>Intelligence and Reasoning</strong>. Small models like YOLOv8 often lack the &quot;common sense&quot; to know which object fits a complex task (e.g., &quot;What should I use to fix a hole?&quot;).</p>
+<ul>
+<li><strong>The Innovation:</strong> We use a &quot;Teacher&quot; model (a large Vision-Language Model like CLIP) to teach the &quot;Student&quot; (YOLOv8) the <strong>Functional Affordances</strong> of objects.</li>
+<li><strong>The Process:</strong> During training, the Teacher provides a high-dimensional semantic map of the image based on the task. The Student is trained to minimize the &quot;hint loss&quot;—trying to match the Teacher's sophisticated reasoning. Post-training, the Teacher is discarded, leaving a small model with &quot;distilled intelligence.&quot;</li>
+</ul>
+<h3 id="22-existing-literature--similar-works">2.2 Existing Literature &amp; Similar Works</h3>
+<ul>
+<li><strong>Foundational KD:</strong> <em>Hinton et al., &quot;Distilling the Knowledge in a Neural Network&quot; (2015)</em>. The original paper on transferring knowledge between models.</li>
+<li><strong>Detection-Specific KD:</strong> <em>Juneja et al., &quot;Knowledge Distillation for Object Detection&quot; (2019)</em>. One of the first to apply KD specifically to bounding boxes and class features.</li>
+<li><strong>Visual Affordance:</strong> <em>Myers et al., &quot;Affordance Detection of Tool Use from Simple Geometric Features&quot; (2015)</em>. Early work on identifying objects by what they <em>do</em> rather than what they <em>are</em>.</li>
+</ul>
+<h3 id="23-state-of-the-art-sota">2.3 State-of-the-Art (SOTA)</h3>
+<ul>
+<li><strong>SOTA in Open-Vocabulary Detection:</strong> <em>Gu et al., &quot;ViLD: Open-vocabulary Object Detection via Vision and Language Knowledge Distillation&quot; (ICLR 2022)</em>. This is the gold standard for using CLIP to teach a detector how to find objects based on text.</li>
+<li><strong>SOTA in Task-Driven Vision:</strong> <em>Zeng et al., &quot;Socratic Models: Composing Zero-Shot Multimodal Reasoning&quot; (2022)</em>. Uses LLMs to provide the &quot;reasoning&quot; that vision models lack.</li>
+</ul>
+<hr>
+<h2 id="summary-comparison-for-proposal">Summary Comparison for Proposal</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Feature</th>
+<th style="text-align:left">Idea 1: Dynamic Gating</th>
+<th style="text-align:left">Idea 2: Semantic Distillation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>Primary Goal</strong></td>
+<td style="text-align:left">Power &amp; Latency Optimization</td>
+<td style="text-align:left">Accuracy &amp; Reasoning Optimization</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>CS Novelty</strong></td>
+<td style="text-align:left">Conditional Computation / Gating</td>
+<td style="text-align:left">Cross-Modal Knowledge Transfer</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>FPGA Benefit</strong></td>
+<td style="text-align:left">Lower switching activity (Power)</td>
+<td style="text-align:left">Smaller model size with higher IQ</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Risk</strong></td>
+<td style="text-align:left">Harder to implement in RTL/Hardware</td>
+<td style="text-align:left">Requires more complex training setup</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="mathematical-framework-for-proposed-novelties">Mathematical Framework for Proposed Novelties</h1>
+<h2 id="idea-1-task-conditional-dynamic-sparsity-gating">Idea 1: Task-Conditional Dynamic Sparsity (Gating)</h2>
+<p>This novelty modifies the <strong>Baseline YOLO Layer</strong> to become &quot;Context-Aware&quot; by applying a multiplicative mask derived from the task text.</p>
+<h3 id="11-the-mathematical-expression">1.1 The Mathematical Expression</h3>
+<p>The output of a specific convolutional layer $l$ in your gated model is defined as:</p>
+<p>$$Y_l = \sigma\left( \mathcal{G}(Z_{task}; W_g) \right) \odot f(X_{l-1}; W_l)$$</p>
+<h3 id="12-symbol-meanings">1.2 Symbol Meanings</h3>
+<ul>
+<li>$X_{l-1}$: The input feature map from the previous layer (Visual data).</li>
+<li>$W_l$: The learned weights of the current YOLO layer.</li>
+<li>$f(\cdot)$: The standard convolution operation.</li>
+<li>$Z_{task}$: The <strong>Task Embedding</strong> generated by the Text Encoder.</li>
+<li>$\mathcal{G}(\cdot)$: The <strong>Gating Network</strong> (a small 2-layer MLP).</li>
+<li>$W_g$: The weights of the Gating Network.</li>
+<li>$\sigma$: The <strong>Sigmoid Activation Function</strong>, ensuring the gate values are in the range $[0, 1]$.</li>
+<li>$\odot$: The <strong>Hadamard Product</strong> (Element-wise multiplication).</li>
+<li>$Y_l$: The resulting &quot;Task-Filtered&quot; feature map.</li>
+</ul>
+<h3 id="13-step-by-step-generation">1.3 Step-by-Step Generation</h3>
+<ol>
+<li><strong>Semantic Projection:</strong> The task vector $Z_{task}$ is passed through $\mathcal{G}$ to calculate which visual &quot;concepts&quot; are relevant.</li>
+<li><strong>Gate Generation:</strong> A vector of coefficients (the gates) is generated. A value near <code>1</code> means &quot;keep this feature,&quot; and near <code>0</code> means &quot;discard.&quot;</li>
+<li><strong>Active Filtering:</strong> The image features are multiplied by these coefficients. Irrelevant visual noise (like background or non-task objects) is mathematically zeroed out.</li>
+</ol>
+<h3 id="14-training-method-sparsity-inducing-loss">1.4 Training Method: Sparsity-Inducing Loss</h3>
+<p>To force the model to actually &quot;turn off&quot; neurons (to save power), we add a <strong>Sparsity Penalty</strong> to the training loss:
+$$L_{total} = L_{detection} + \lambda \sum |\sigma(\mathcal{G}(Z_{task}))|$$</p>
+<ul>
+<li><strong>Reasoning:</strong> The $L_1$ regularization ($\lambda$ term) rewards the model for making the gates as close to zero as possible without losing detection accuracy.</li>
+</ul>
+<hr>
+<h2 id="idea-2-semantic-affordance-knowledge-distillation-kd">Idea 2: Semantic Affordance Knowledge Distillation (KD)</h2>
+<p>This novelty transfers &quot;Functional Reasoning&quot; from a Large Teacher (CLIP) to the Small Student (YOLO) without increasing the Student's hardware footprint.</p>
+<h3 id="21-the-mathematical-expression">2.1 The Mathematical Expression</h3>
+<p>The training objective is to minimize the distance between the Teacher’s high-level understanding and the Student’s output:</p>
+<p>$$L_{KD} = \text{MSE}\left( \Phi_{T}(I, T) , \mathcal{P}(\Phi_{S}(I, T)) \right)$$</p>
+<h3 id="22-symbol-meanings">2.2 Symbol Meanings</h3>
+<ul>
+<li>$\Phi_{T}(I, T)$: The <strong>Teacher’s Feature Map</strong>. This is the &quot;gold standard&quot; reasoning for an image $I$ and task $T$.</li>
+<li>$\Phi_{S}(I, T)$: The <strong>Student’s Feature Map</strong> (from your YOLO model).</li>
+<li>$\text{MSE}$: <strong>Mean Squared Error</strong>, calculating the average squared difference between the two brains.</li>
+<li>$\mathcal{P}$: A <strong>Projection Layer</strong>. Since the Teacher is &quot;bigger,&quot; its feature map might be 1024-wide, while the Student is only 256-wide. $\mathcal{P}$ is a small matrix that resizes the Student's features to match the Teacher's for comparison.</li>
+<li>$L_{KD}$: The Distillation Loss.</li>
+</ul>
+<h3 id="23-step-by-step-generation">2.3 Step-by-Step Generation</h3>
+<ol>
+<li><strong>Teacher Inference:</strong> The heavy model (Teacher) processes the image and task. It identifies &quot;Affordance regions&quot; (e.g., it &quot;sees&quot; that a handle is for &quot;gripping&quot;).</li>
+<li><strong>Student Inference:</strong> The light model (Student) tries to do the same.</li>
+<li><strong>Alignment:</strong> The Student's output is compared to the Teacher's.</li>
+<li><strong>Error Correction:</strong> The Student’s weights are updated to mimic the Teacher’s internal representation.</li>
+</ol>
+<h3 id="24-training-method-multi-task-learning">2.4 Training Method: Multi-Task Learning</h3>
+<p>The model is trained using a composite loss function:
+$$L_{final} = L_{YOLO} + \beta L_{KD}$$</p>
+<ul>
+<li><strong>Phase 1 (Training):</strong> Both models run. The Student learns from the Teacher.</li>
+<li><strong>Phase 2 (Deployment):</strong> The Teacher is removed. The Student now operates independently on the VEGA processor, but it retains the &quot;reasoning&quot; it learned during Phase 1.</li>
+</ul>
+<hr>
+<h2 id="hardware-constraint-note-the-integer-transformation">Hardware Constraint Note: The Integer Transformation</h2>
+<p>For both ideas, the variables ($W, Y, \Phi$) must eventually undergo <strong>Quantization</strong>:
+$$Q(x) = \text{clamp}\left( \lfloor \frac{x}{S} \rceil + Z, -128, 127 \right)$$</p>
+<ul>
+<li><strong>$S$ (Scale):</strong> Determines how much &quot;decimal&quot; we keep.</li>
+<li><strong>$Z$ (Zero-point):</strong> Shifts the range to fit 8-bit integers.</li>
+<li><strong>Constraint:</strong> On the VEGA processor, the $\odot$ (multiplication) in the Gating idea will be performed as <strong>Fixed-Point Multiplication</strong>, which is essentially an integer multiply followed by a bit-shift.</li>
+</ul>
+<hr>
+<h3 id="1-the-difference-attention-vs-gating">1. The Difference: Attention vs. Gating</h3>
+<p>Think of them like this:</p>
+<ul>
+<li><strong>Attention</strong> is like a <strong>Searchlight</strong>. Every pixel in the image &quot;looks&quot; at every word in the task to see how they relate. It is very detailed but very expensive (Math: $O(N^2)$).</li>
+<li><strong>Gating</strong> is like a <strong>Filter</strong>. The task text creates a &quot;Master Key&quot; (the gate). This key is applied to the whole image at once to turn specific feature channels on or off. It is much faster (Math: $O(N)$).</li>
+</ul>
+<p><strong>Is gating based on attention?</strong>
+Technically, yes. Gating is often called <strong>&quot;Global Cross-Attention.&quot;</strong> Instead of every pixel looking at every word individually, the <em>entire image</em> looks at the <em>entire task</em> once.</p>
+<hr>
+<h3 id="2-the-fpga-problem-why-%22full-attention%22-is-heavy">2. The FPGA Problem: Why &quot;Full Attention&quot; is Heavy</h3>
+<p>In the <strong>Baseline</strong> I described earlier, I mentioned &quot;Attention Fusion.&quot; However, on a Genesys-2 FPGA/VEGA processor:</p>
+<ol>
+<li><strong>Memory Bottleneck:</strong> Standard Attention requires a &quot;Similarity Matrix&quot; ($QK^T$). If your image has 10,000 &quot;patches,&quot; that matrix is $10,000 \times 10,000$. This will crash the FPGA's on-chip memory (BRAM).</li>
+<li><strong>Softmax Difficulty:</strong> Attention requires the <strong>Softmax</strong> function ($e^x$). Calculating exponents on a Fixed-Integer processor is extremely slow and inaccurate.</li>
+</ol>
+<hr>
+<h3 id="3-the-%22gating%22-solution-making-it-fpga-friendly">3. The &quot;Gating&quot; Solution: Making it FPGA-Friendly</h3>
+<p>This is why <strong>Idea 1 (Gating)</strong> is actually your <strong>Novelty</strong>. You are taking the &quot;Heavy Attention&quot; required for task-awareness and replacing it with <strong>&quot;Lightweight Channel Gating.&quot;</strong></p>
+<h4 id="how-the-math-changes-to-save-the-fpga">How the Math changes to save the FPGA:</h4>
+<p><strong>Instead of Full Attention:</strong>
+$$\text{Output} = \text{Softmax}(Q \cdot K^T) \cdot V \quad \leftarrow \text{[Too heavy for VEGA]}$$</p>
+<p><strong>You use Task-Gating:</strong>
+$$\text{Output} = \text{Gate}(\text{Task}) \odot \text{Features}(\text{Image}) \quad \leftarrow \text{[Perfect for VEGA]}$$</p>
+<ul>
+<li><strong>Why it's better:</strong> You only do <strong>one multiplication</strong> per feature channel.</li>
+<li><strong>Why it's still &quot;Attention&quot;:</strong> It's still focusing on what's important, but it's doing it at the <strong>Channel Level</strong> instead of the <strong>Pixel Level</strong>.</li>
+</ul>
+<hr>
+<h1 id="detailed-project-methodology">Detailed Project Methodology</h1>
+<h2 id="phase-1-preparation-setting-the-foundation">Phase 1: Preparation (Setting the Foundation)</h2>
+<p><strong>1. Task Semantic Mapping</strong></p>
+<ul>
+<li><strong>What is happening:</strong> We take the 14 tasks (like &quot;Cutting&quot; or &quot;Pouring&quot;) and turn them into &quot;Brain Language.&quot;</li>
+<li><strong>How to do it:</strong> We feed each task into a tiny pre-trained Language Model (like DistilBERT). This creates 14 &quot;Task Vectors.&quot; Think of these as a unique 128-digit code for each task.</li>
+<li><strong>Why:</strong> Instead of searching for a word, the computer is now searching for a mathematical concept.</li>
+</ul>
+<p><strong>2. Dataset &quot;Cleaning&quot;</strong></p>
+<ul>
+<li><strong>What is happening:</strong> We filter the COCO dataset to focus on images that match our 14 tasks.</li>
+<li><strong>How to do it:</strong> We create a &quot;Golden Table&quot; that maps tasks to objects (e.g., Task: &quot;Drink&quot; -&gt; Objects: &quot;Cup,&quot; &quot;Bottle,&quot; &quot;Glass&quot;).</li>
+</ul>
+<hr>
+<h2 id="phase-2-the-architecture-baseline--novelty-1-gating">Phase 2: The Architecture (Baseline + Novelty 1: Gating)</h2>
+<p>This diagram shows how the Image and Text meet in the middle.</p>
+<!-- ![Architecture Diagram w:750](./idea1.jpg) -->
+ <img src="./idea1.jpg" width="400"/>
+<p><strong>Step-by-Step Logic:</strong></p>
+<ol>
+<li><strong>The Visual Path:</strong> The image goes through the YOLO backbone (the &quot;Eyes&quot;). It identifies colors, textures, and shapes.</li>
+<li><strong>The Semantic Path:</strong> The Task Vector goes through a &quot;Gating MLP&quot; (a few small math layers). This generates a set of <strong>Multipliers</strong> (between 0 and 1).</li>
+<li><strong>The Interaction:</strong> These multipliers act like <strong>Volume Knobs</strong> on the visual features.
+<ul>
+<li><em>Example:</em> If the task is &quot;Sitting,&quot; the &quot;Knob&quot; for &quot;Furniture features&quot; is turned to 100%, and the &quot;Knob&quot; for &quot;Animal features&quot; is turned to 0%.</li>
+</ul>
+</li>
+<li><strong>The Final Decision:</strong> The Detection Head only sees the amplified &quot;relevant&quot; features, making its job much easier and more accurate.</li>
+</ol>
+<hr>
+<h2 id="phase-3-the-training-novelty-2-distillation">Phase 3: The Training  (Novelty 2: Distillation)</h2>
+<p>This happens <strong>only on your PC</strong>, not on the FPGA. This is how we make the model &quot;smart.&quot;</p>
+<img src="./Idea2.jpg" width="400" />
+<p><strong>Step-by-Step Logic:</strong></p>
+<ol>
+<li><strong>The Expert (Teacher):</strong> We use a giant model (CLIP) that already knows everything. We ask it: &quot;What in this image is best for this task?&quot;</li>
+<li><strong>The Apprentice (Student):</strong> We ask your YOLO model the same thing.</li>
+<li><strong>The Correction:</strong> If the Apprentice is wrong, we calculate the difference (Loss) and force the Apprentice to change its &quot;brain&quot; to match the Expert.</li>
+<li><strong>Graduation:</strong> Once the Apprentice (YOLO) can predict as well as the Expert, we &quot;delete&quot; the Expert. The Apprentice is now &quot;Smart&quot; but still &quot;Small.&quot;</li>
+</ol>
+<hr>
+<h2 id="phase-4-hardware-bridge">Phase 4: Hardware Bridge</h2>
+<p>Now we prepare the model for the <strong>VEGA Processor</strong>.</p>
+<p><strong>1. Fake Quantization (Simulation)</strong></p>
+<ul>
+<li><strong>What:</strong> We tell the model: &quot;Pretend you can only use whole numbers (integers).&quot;</li>
+<li><strong>How:</strong> During the last few rounds of training, we round off all the decimals. If the model's accuracy drops, it learns to adjust its weights to work better with whole numbers.</li>
+</ul>
+<p><strong>2. Bit-Shift Optimization</strong></p>
+<ul>
+<li><strong>What:</strong> In the Gating layer, instead of multiplying by <code>0.5</code>, we tell the computer to &quot;Shift the bits to the right by 1.&quot;</li>
+<li><strong>How:</strong> We design the math so that our &quot;Gating Knobs&quot; are always powers of two (1, 0.5, 0.25). Bit-shifting is the fastest possible operation on an FPGA.</li>
+</ul>
+<hr>
+<h2 id="phase-5-final-deployment-on-the-genesys-2-board">Phase 5: Final Deployment (On the Genesys-2 Board)</h2>
+<p><strong>1. Exporting:</strong> We save the model as a list of integers.
+<strong>2. Loading:</strong> The ECE team loads these integers into the VEGA processor's memory.
+<strong>3. Real-Time Check:</strong></p>
+<ul>
+<li>The camera sees a scene.</li>
+<li>The user types a task.</li>
+<li>The VEGA processor does the &quot;Bit-Shifts&quot; and &quot;Integer Math.&quot;</li>
+<li>A box appears around the correct object in milliseconds.</li>
+</ul>
+<hr>
+
+</body>
+</html>

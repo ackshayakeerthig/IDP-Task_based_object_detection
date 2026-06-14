@@ -1,0 +1,129 @@
+{
+  "comment": "Task-Aware YOLO Configuration Template",
+  
+  "dataset": {
+    "coco_dir": "/path/to/coco",
+    "train_split": "train",
+    "val_split": "val",
+    "img_size": 640,
+    "augment": true,
+    "num_workers": 4
+  },
+  
+  "model": {
+    "backbone": "yolov8s",
+    "semantic_dim": 512,
+    "vocab_size": 10000,
+    "num_classes": 80,
+    "pretrained": true
+  },
+  
+  "teacher": {
+    "model_name": "ViT-B/32",
+    "teacher_type": "clip",
+    "teacher_device": "cuda"
+  },
+  
+  "training": {
+    "epochs": 100,
+    "warmup_epochs": 5,
+    "qat_epochs": 10,
+    "batch_size": 32,
+    "initial_lr": 0.001,
+    "min_lr": 0.00001,
+    "optimizer": "adamw",
+    "weight_decay": 0.0005,
+    "momentum": 0.937,
+    "use_amp": true,
+    "gradient_clip": 1.0
+  },
+  
+  "loss": {
+    "yolo_weight": 1.0,
+    "mse_weight": 0.3,
+    "cosine_weight": 0.2,
+    "kl_weight": 0.1,
+    "sparsity_weight": 0.01
+  },
+  
+  "gating": {
+    "enabled": true,
+    "hidden_dim": 512,
+    "activation": "sigmoid",
+    "sparsity_threshold": 0.05,
+    "encourage_sparsity": true
+  },
+  
+  "quantization": {
+    "enable_qat": true,
+    "bits": 8,
+    "is_signed": true,
+    "symmetric": true,
+    "per_channel": false,
+    "calibration_method": "entropy",
+    "percentile": 99.9
+  },
+  
+  "inference": {
+    "conf_threshold": 0.5,
+    "iou_threshold": 0.5,
+    "max_detections": 100,
+    "batch_inference": true
+  },
+  
+  "checkpointing": {
+    "checkpoint_dir": "./checkpoints",
+    "log_dir": "./logs",
+    "output_dir": "./outputs",
+    "save_freq": 5,
+    "keep_best_only": true
+  },
+  
+  "device": {
+    "device_type": "cuda",
+    "device_id": 0,
+    "mixed_precision": true,
+    "num_gpus": 1
+  },
+  
+  "logging": {
+    "log_freq": 100,
+    "tensorboard": true,
+    "verbose": true,
+    "log_metrics": [
+      "loss",
+      "yolo_loss",
+      "distill_loss",
+      "sparsity",
+      "lr"
+    ]
+  },
+  
+  "evaluation": {
+    "eval_freq": 1,
+    "metrics": [
+      "mAP",
+      "mAP50",
+      "mAP75",
+      "task_success_rate",
+      "latency"
+    ],
+    "use_coco_eval": true
+  },
+  
+  "hardware": {
+    "fpga_target": "genesys2",
+    "processor": "vega_riscv",
+    "bram_size_kb": 2375,
+    "lut_count": 200000,
+    "dsp_count": 440
+  },
+  
+  "notes": [
+    "For COCO dataset: Download from https://cocodataset.org/#download",
+    "For Kaggle TPU: Set device_type to 'tpu' and device_id to 'tpu:0'",
+    "QAT enables automatically in last qat_epochs epochs",
+    "Sparsity threshold controls which gates are considered 'inactive'",
+    "Fine-tune loss weights based on your task importance"
+  ]
+}
