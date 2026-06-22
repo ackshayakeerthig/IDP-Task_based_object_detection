@@ -14,6 +14,30 @@ TASKS = [
 task_to_id = {task: i for i, task in enumerate(TASKS)}
 id_to_task = {i: task for i, task in enumerate(TASKS)}
 
+SYNONYMS = {
+    "drink": "pouring",
+    "drinking": "pouring",
+    "eat": "holding",
+    "eating": "holding",
+    "slice": "cutting",
+    "chop": "cutting",
+    "grab": "grasping",
+    "pick": "grasping",
+    "keep": "holding",
+    "rest": "sitting",
+    "transport": "carrying",
+    "move": "carrying",
+    "shove": "pushing",
+    "drag": "pulling",
+    "strike": "hitting",
+    "toss": "throwing",
+    "pitch": "throwing",
+    "unwrap": "opening",
+    "shut": "closing",
+    "steady": "balancing",
+    "pile": "stacking"
+}
+
 def get_task_tensor(task_name, device):
     if task_name not in task_to_id:
         print(f"⚠️ Warning: '{task_name}' not in vocabulary. Defaulting to 'pouring'.")
@@ -113,6 +137,18 @@ def extract_verb_clip(question_text, clip_model, clip_preprocess, device):
     """
     Zero-shot matches the user question to one of the 14 trained tasks using CLIP.
     """
+    question_lower = question_text.lower()
+    
+    # Check exact tasks
+    for task in TASKS:
+        if task in question_lower or task[:-3] in question_lower:
+            return task
+            
+    # Check synonyms
+    for syn, task in SYNONYMS.items():
+        if syn in question_lower:
+            return task
+
     text_tokens = clip.tokenize([question_text] + TASKS, truncate=True).to(device)
     with torch.no_grad():
         text_features = clip_model.encode_text(text_tokens)

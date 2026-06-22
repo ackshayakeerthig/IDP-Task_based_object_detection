@@ -1,0 +1,511 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{Task-Driven Object Detection with Semantic Distillation and Dynamic Gating
+Using an Accelerator on FPGA for Embedded Applications}
+
+\author{%
+\IEEEauthorblockN{Ackshaya Keerthi G}
+\IEEEauthorblockA{\textit{Dept. of Computer Science \& Engineering}\\
+\textit{RV College of Engineering}\\
+Bengaluru, India\\
+1rv23cs013@rvce.edu.in}
+\and
+\IEEEauthorblockN{Bhoomika Sundar}
+\IEEEauthorblockA{\textit{Dept. of Computer Science \& Engineering}\\
+\textit{RV College of Engineering}\\
+Bengaluru, India\\
+1rv23cs066@rvce.edu.in}
+\and
+\IEEEauthorblockN{Tandle Suhani}
+\IEEEauthorblockA{\textit{Dept. of Electronics \& Communication}\\
+\textit{RV College of Engineering}\\
+Bengaluru, India\\
+1rv22ec184@rvce.edu.in}
+\and
+\IEEEauthorblockN{Vaibhavi D}
+\IEEEauthorblockA{\textit{Dept. of Electronics \& Communication}\\
+\textit{RV College of Engineering}\\
+Bengaluru, India\\
+1rv22ec177@rvce.edu.in}
+\and
+\IEEEauthorblockN{Dr. Roopa T S}
+\IEEEauthorblockA{\textit{Dept. of Mechanical Engineering}\\
+\textit{RV College of Engineering}\\
+Bengaluru, India\\
+roopaTS@rvce.edu.in}
+}
+
+\maketitle
+
+% ---------------------------------------------------------------
+\begin{abstract}
+Current object detection systems for edge devices are constrained by the computational
+burden of cross-modal attention mechanisms, which carry a quadratic complexity of
+$O(N^{2})$. These architectures produce large similarity matrices and rely on Softmax
+functions that are incompatible with the fixed-point arithmetic of embedded processors
+such as the VEGA RISC-V processor, creating critical memory bottlenecks. This paper
+proposes a task-driven pipeline that replaces heavy cross-modal attention with a
+lightweight dynamic gating mechanism operating at the channel level, reducing fusion
+complexity to $O(N)$. A YOLOv8 visual backbone is distilled from a frozen CLIP teacher
+model, transferring functional affordance reasoning into a compact 6\,MB student model
+via Mean Squared Error minimization. A Task-Mapping Multi-Layer Perceptron (MLP)
+generates Hadamard-product gating coefficients that selectively activate or suppress
+feature channels based on semantic intent. Deployment on the Genesys-2 FPGA using
+INT8 quantization and bit-shift arithmetic yields a 96.29\% average channel sparsity,
+a 40.93\% improvement in semantic alignment over the YOLOv8 baseline, and a
+77.04\% estimated dynamic power saving---all while maintaining 100\% detection
+consistency with the dense baseline across 5,000 test images.
+\end{abstract}
+
+\begin{IEEEkeywords}
+FPGA, object detection, knowledge distillation, dynamic gating, semantic affordance,
+YOLOv8, CLIP, INT8 quantization, edge computing, VEGA processor
+\end{IEEEkeywords}
+
+% ---------------------------------------------------------------
+\section{Introduction}
+
+The proliferation of embedded vision systems in robotics, assistive devices, and
+autonomous agents demands a shift from general-purpose object detection toward
+\emph{task-aware} perception. Rather than enumerating every object in a scene, a
+task-driven system must interpret a natural-language intent (e.g., ``find something
+to sit on'') and prioritize only the relevant visual affordances. This is especially
+critical for resource-constrained hardware where energy and memory budgets are
+strictly bounded.
+
+Standard cross-modal attention, as used by models such as GLIP~\cite{li2022grounded}
+and YOLO-World~\cite{cheng2024yoloworld}, achieves strong semantic grounding but
+incurs $O(N^{2})$ complexity and floating-point operations (FP32) that exceed the
+capabilities of fixed-point embedded processors. Specifically, the VEGA processor
+on the Genesys-2 FPGA board lacks hardware support for the Softmax exponential
+required by standard attention, causing memory overflows in on-chip Block RAM (BRAM).
+
+To bridge this gap, we propose a dual-encoder pipeline that (i) distils functional
+affordance knowledge from a CLIP~\cite{radford2021clip} teacher into a lightweight
+YOLOv8 student, and (ii) replaces attention with an $O(N)$ \emph{dynamic gating}
+module implemented as element-wise Hadamard products. The complete system is
+quantized to INT8 and deployed on the CDAC VEGA RISC-V processor with bit-shift
+arithmetic for real-time inference.
+
+The main contributions of this paper are:
+\begin{itemize}
+    \item A task-conditional dynamic sparsity formulation that reduces cross-modal
+          fusion complexity from $O(N^{2})$ to $O(N)$.
+    \item A CLIP-to-YOLOv8 semantic distillation pipeline that achieves a 40.93\%
+          reduction in affordance localization error.
+    \item An INT8 hardware deployment achieving 96.29\% average channel sparsity
+          and 77.04\% estimated dynamic power saving on the VEGA processor, with
+          zero detection consistency loss.
+    \item A SystemVerilog verification framework confirming all CNN accelerator
+          test cases pass on the Genesys-2 FPGA.
+\end{itemize}
+
+% ---------------------------------------------------------------
+\section{Related Work}
+
+\subsection{Vision-Language Models for Detection}
+Radford \emph{et al.}~\cite{radford2021clip} introduced CLIP, enabling zero-shot
+object identification via contrastive language-image pre-training. Li \emph{et
+al.}~\cite{li2022grounded} extended this to grounded detection with GLIP, framing
+detection as a phrase-grounding problem. Both models, however, rely on dense
+transformer attention whose quadratic complexity and FP32 requirements preclude
+direct FPGA deployment.
+
+\subsection{Efficient Distillation and Compact Models}
+Vasu \emph{et al.}~\cite{vasu2023mobileclip} demonstrated with MobileCLIP that
+teacher-student distillation can compress large vision-language models to
+mobile-scale footprints while preserving much of the teacher's semantic
+reasoning. This motivates our use of CLIP as the affordance teacher for YOLOv8.
+
+\subsection{Dynamic and Sparse Computation}
+Yang~\cite{yang2022rosetta} utilized task-aware gates in ROSETTA to activate
+task-specific channels; Rao \emph{et al.}~\cite{rao2021dynamicvit} developed
+DynamicViT to prune irrelevant image tokens at inference time. Neither work
+addresses INT8 FPGA deployment. Sawatzky \emph{et al.}~\cite{sawatzky2019affordance}
+applied Gated Graph Neural Networks to region prioritization, but message-passing
+overhead is prohibitive for real-time edge silicon. Our approach unifies channel-level
+gating with hardware-optimized quantization to fill this gap.
+
+% ---------------------------------------------------------------
+\section{Methodology}
+
+\subsection{System Overview}
+
+\begin{figure}[htbp]
+\centerline{\fbox{\rule{0pt}{3.5cm}\rule{8cm}{0pt}}}
+\caption{High-level dual-encoder pipeline. Natural language task input is
+encoded into a 512-dimensional embedding that drives the dynamic gating module
+acting on the YOLOv8 P5 feature map before the INT8 quantization layer.}
+\label{fig:pipeline}
+\end{figure}
+
+The proposed pipeline (Fig.~\ref{fig:pipeline}) ingests a $640\times640$ RGB
+image and a natural-language task string simultaneously. A frozen CLIP text encoder
+maps the task to a 512-dimensional embedding $\mathbf{z}_{\text{task}}$. A YOLOv8n
+backbone extracts the P5 feature map $\mathbf{F}\in\mathbb{R}^{256\times20\times20}$.
+A lightweight Task-Mapping MLP converts $\mathbf{z}_{\text{task}}$ into a gating
+vector $\mathbf{g}\in\mathbb{R}^{256}$, which is applied to $\mathbf{F}$ via a
+Hadamard product before the detection head.
+
+\subsection{Task-Conditional Dynamic Gating}
+
+The core operation of the gating layer at layer $l$ is:
+\begin{equation}
+    Y_l = \sigma\!\left(\mathcal{G}(Z_{\text{task}};\,W_g)\right) \odot f(X_{l-1};\,W_l),
+    \label{eq:gating}
+\end{equation}
+where $\mathcal{G}$ is the gating MLP, $\sigma$ is the sigmoid activation, $\odot$
+denotes the element-wise Hadamard product, $X_{l-1}$ is the visual input from the
+preceding layer, and $W_g$, $W_l$ are learned weight matrices. The MLP transformation
+producing the gating coefficients is:
+\begin{equation}
+    \mathbf{g} = \sigma\!\left(W_2 \cdot \phi(W_1 \cdot \mathbf{v} + \mathbf{b}_1) + \mathbf{b}_2\right),
+    \label{eq:mlp}
+\end{equation}
+where $\phi$ is ReLU and $\mathbf{v}\in\mathbb{R}^{64}$ is the task embedding
+vector. Sigmoid constrains each coefficient $g_i\in(0,1)$, with values near zero
+indicating that the corresponding convolutional channel is semantically redundant
+and can be skipped by the hardware.
+
+The modulated feature map applied to channel $c$ at spatial position $(h,w)$ is:
+\begin{equation}
+    F'_{c,h,w} = F_{c,h,w} \times g_c.
+    \label{eq:hadamard}
+\end{equation}
+
+\subsection{Sparsity-Inducing Training Objective}
+
+To encourage hardware-friendly sparsity, the total training loss incorporates an
+$L_1$ regulariser on gating activations:
+\begin{equation}
+    \mathcal{L}_{\text{total}} = \mathcal{L}_{\text{detection}} + \lambda \sum_{i}\left|\sigma\!\left(\mathcal{G}(Z_{\text{task}})\right)_i\right|.
+    \label{eq:loss}
+\end{equation}
+This penalises non-zero gates, incentivising the model to deactivate as many
+channels as possible without degrading detection accuracy.
+
+\subsection{Semantic Distillation from CLIP}
+
+The distillation loss aligns the student's gated feature activations with the
+CLIP teacher's attention maps:
+\begin{equation}
+    \mathcal{L}_{\text{distill}} = \frac{1}{N}\sum_{i=1}^{N}
+        \left\|\Phi_T(I_i, T_{\text{text}}) - \Phi_S(I_i, \mathbf{g})\right\|^2,
+    \label{eq:distill}
+\end{equation}
+where $\Phi_T$ and $\Phi_S$ are the teacher and student feature extraction
+functions for image $I_i$ and text query $T_{\text{text}}$. Minimising this
+Euclidean distance transfers the CLIP teacher's 2\,GB semantic intelligence into
+the 6\,MB student without requiring CLIP at inference time.
+
+\subsection{INT8 Quantization and Hardware Deployment}
+
+All floating-point weights are quantized to 8-bit integers using:
+\begin{equation}
+    Q(x) = \text{clamp}\!\left(\left\lfloor\frac{x}{S}\right\rfloor + Z,\,-128,\,127\right),
+    \label{eq:quant}
+\end{equation}
+where $S$ is the per-tensor scale factor and $Z$ is the zero-point offset. The
+gating coefficients are further optimised using bit-shift arithmetic, replacing
+FP32 multiplications with fast integer shifts on the VEGA RISC-V ISA. The
+convolution engine checks each gate $g_c$ against a threshold $\tau=0.1$ before
+issuing a Multiply-Accumulate (MAC) instruction; if $g_c<\tau$, the entire
+feature plane is bypassed, reducing dynamic switching activity.
+
+\subsection{Dataset and Task Mapping}
+
+Training and evaluation use the COCO-2017 dataset. A 14-task affordance vocabulary
+(e.g., \textit{sitting}, \textit{grasping}, \textit{pouring}, \textit{cutting}) is
+defined, and each task is mapped to relevant COCO object categories. Input images
+are resized to $640\times640$ pixels and normalised to $[0,1]$. During distillation,
+CLIP generates reference attention maps stored as ground-truth tensors for the
+student to minimise~\eqref{eq:distill}.
+
+% ---------------------------------------------------------------
+\section{Verification of the CNN Accelerator}
+
+A layered SystemVerilog testbench validates the CNN accelerator hardware before
+FPGA deployment. The verification architecture follows a modular
+Driver~$\to$~DUT~$\to$~Monitor~$\to$~Scoreboard pipeline, exercising the design
+under three test cases:
+
+\begin{enumerate}
+    \item \textbf{Normal Inference}: Reset $\to$ Start $\to$ CNN processing $\to$ Done;
+          verifies FSM transitions, Conv1, pooling, Conv2, and fully connected outputs.
+    \item \textbf{Mid-Run Reset Recovery}: Start $\to$ wait 30 cycles $\to$ assert reset
+          $\to$ restart; verifies counter and BRAM recovery.
+    \item \textbf{Back-to-Back Inference}: Run\,\#1 $\to$ Reset $\to$ Run\,\#2; confirms
+          accumulator and memory clearing between consecutive inferences.
+\end{enumerate}
+
+The DUT (\texttt{top\_cnn}) contains an input BRAM, Conv1 engine with ReLU, a
+ping-pong BRAM and max-pool unit, a Conv2 layer, a fully connected layer, and an
+FSM controller. A 100\,MHz clock is generated by \texttt{always \#5 clk = \textasciitilde clk}.
+The scoreboard validates the fully connected outputs against the golden reference
+\texttt{fc = [401, 2, 403, 4]}, yielding a final result of $\text{PASS}=4$,
+$\text{FAIL}=0$---all tests passed.
+
+% ---------------------------------------------------------------
+\section{Results and Discussion}
+
+\subsection{Semantic Alignment (Simulation)}
+
+Semantic alignment is measured by the Mean Squared Error (MSE) between the
+CLIP teacher heatmap $Y_{i,j}$ and the student activation map $\hat{Y}_{i,j}$:
+\begin{equation}
+    \text{MSE} = \frac{1}{M \times N}\sum_{i=1}^{M}\sum_{j=1}^{N}
+        \left(Y_{i,j} - \hat{Y}_{i,j}\right)^2.
+    \label{eq:mse}
+\end{equation}
+
+Table~\ref{tab:alignment} reports results over 5,000 COCO test images.
+
+\begin{table}[htbp]
+\caption{Semantic Alignment Performance over 5,000 Test Samples}
+\label{tab:alignment}
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Model} & \textbf{MSE} & \textbf{Improvement} \\
+\midrule
+Standard YOLOv8 Baseline & 0.1343 & --- \\
+Task-Aware Student Model & 0.0710 & 40.93\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+The task-aware student achieves a 40.93\% reduction in MSE, confirming that the
+CLIP-guided distillation successfully transfers functional affordance reasoning.
+The error distribution for the student model (Fig.~\ref{fig:mse_dist}) is
+left-shifted and sharper than the baseline, indicating consistent localization
+across diverse scenes rather than isolated improvements.
+
+\begin{figure}[htbp]
+\centerline{\fbox{\rule{0pt}{3cm}\rule{8cm}{0pt}}}
+\caption{Probability density distribution of MSE scores for the standard YOLOv8
+baseline (pink) and the task-aware student model (green). The student exhibits a
+sharper, left-skewed distribution, indicating more consistent semantic alignment.}
+\label{fig:mse_dist}
+\end{figure}
+
+\subsection{Qualitative Affordance Localization}
+
+Side-by-side heatmap comparisons for the \emph{sitting} and \emph{grasping} tasks
+demonstrate that the student model (Fig.~\ref{fig:heatmaps}) faithfully replicates
+the CLIP teacher's focus. For \emph{sitting}, the student highlights horizontal
+support surfaces (chair seats, sofas), ignoring walls and floors. For
+\emph{grasping}, the model concentrates activations on graspable edges and handles
+rather than the entire object, enabling fine-grained interaction guidance.
+
+\begin{figure}[htbp]
+\centerline{\fbox{\rule{0pt}{3.5cm}\rule{8cm}{0pt}}}
+\caption{Qualitative affordance localization. Left: gated detections. Centre: CLIP
+teacher focus (ground truth). Right: student model focus. Shown for the
+\emph{sitting} task (top row) and \emph{grasping} task (bottom row).}
+\label{fig:heatmaps}
+\end{figure}
+
+\subsection{Hardware Gating Sparsity}
+
+Channel sparsity is defined as:
+\begin{equation}
+    S_c = \left(1 - \frac{\sum_{i=1}^{C}\mathbb{1}(g_i > \tau)}{C}\right)\times 100,
+    \label{eq:sparsity}
+\end{equation}
+where $C=256$, $\tau=0.1$. Table~\ref{tab:sparsity} summarises hardware
+efficiency metrics averaged across all 14 tasks.
+
+\begin{table}[htbp]
+\caption{Hardware Sparsity and Theoretical Efficiency Metrics}
+\label{tab:sparsity}
+\begin{center}
+\begin{tabular}{lc}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Average Channel Sparsity $S_c$ & 96.29\% \\
+Active Computational Channels & 9.47 / 256 \\
+Theoretical Computational Reduction & 96.30\% \\
+Estimated Dynamic Power Saving (VEGA) & 77.04\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+Fig.~\ref{fig:sparsity_bar} shows per-task sparsity, consistently exceeding 80\%
+for all 14 tasks and averaging 96.29\%. The gating correlation analysis
+(Pearson $\rho=-0.1298$) reveals that the Task Mapper learns a deterministic,
+image-invariant mask per task. This is advantageous for FPGA deployment: gating
+configurations can be pre-loaded into BRAM at task-selection time, eliminating
+real-time MLP overhead during inference.
+
+\begin{figure}[htbp]
+\centerline{\fbox{\rule{0pt}{3cm}\rule{8cm}{0pt}}}
+\caption{Percentage of YOLOv8 P5 channels deactivated per semantic task.
+The dashed red line marks the 96.3\% mean across all 14 tasks.}
+\label{fig:sparsity_bar}
+\end{figure}
+
+\subsection{Inter-Task Semantic Specialization}
+
+The Jaccard Similarity Index between active channel masks for any two tasks:
+\begin{equation}
+    J(T_1, T_2) = \frac{|\mathbf{G}_{T_1} \cap \mathbf{G}_{T_2}|}{|\mathbf{G}_{T_1} \cup \mathbf{G}_{T_2}|},
+    \label{eq:jaccard}
+\end{equation}
+yields a mean inter-task overlap of just 1.85\%. Semantically proximate tasks
+(\textit{carrying}--\textit{balancing}) peak at 0.82, while structurally distinct
+tasks approach zero overlap. This confirms high architectural specialization: the
+hardware activates a nearly unique set of channels per task.
+
+\subsection{Functional Integrity and Detection Consistency}
+
+\begin{table}[htbp]
+\caption{Detection Consistency Across 5,000 Images}
+\label{tab:consistency}
+\begin{center}
+\begin{tabular}{lc}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Detection Consistency Rate & 100.00\% \\
+Mean Object Recall Parity & 1.00 \\
+Person Detection Recall Stability & 100.00\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+Despite 96.29\% channel suppression, the task-aware model maintains 100\%
+detection consistency with the dense YOLOv8 baseline (Table~\ref{tab:consistency}).
+The suppressed channels in the P5 layer are semantically redundant for object
+localization, confirming that gating operates as a semantic filter without
+degrading foundational detection capability.
+
+\subsection{Inference Latency and Software Overhead}
+
+\begin{table}[htbp]
+\caption{Inference Latency Benchmarking (NVIDIA T4 GPU, 100 Trials)}
+\label{tab:latency}
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & \textbf{YOLOv8n} & \textbf{Task-Aware} \\
+\midrule
+Mean Inference Latency (ms) & 8.17 & 9.12 \\
+Software Overhead $\Omega$ & --- & 11.65\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+The 11.65\% software overhead (Table~\ref{tab:latency}) arises from sequential
+Task Mapper and Gating MLP execution on a general-purpose GPU. On the VEGA
+RISC-V processor, the custom ISA leverages sparsity to bypass MAC operations,
+translating the 96.30\% mathematical reduction in the P5 layer into substantial
+hardware-level power savings that far outweigh the software overhead.
+
+% ---------------------------------------------------------------
+\section{Conclusion}
+
+We presented a task-driven object detection system that achieves $O(N)$ cross-modal
+fusion complexity through dynamic channel gating, enabling deployment on FPGA-based
+edge hardware that is incompatible with standard attention mechanisms. By distilling
+CLIP's semantic affordance knowledge into a compact YOLOv8 student and replacing
+similarity matrices with Hadamard-product masks, the proposed pipeline realizes:
+(i) a 40.93\% semantic alignment improvement over the dense baseline;
+(ii) 96.29\% average channel sparsity with an estimated 77.04\% dynamic power saving
+on the VEGA processor;
+(iii) 100\% detection consistency with the dense model across 5,000 test images; and
+(iv) full hardware verification of the CNN accelerator via SystemVerilog, with all
+four test scenarios passing.
+
+Future work will extend the task vocabulary beyond the current 14 predefined prompts
+to open-vocabulary queries processed in real time, investigate hybrid INT4/INT8 
+quantization, and explore ASIC tape-out to further reduce power consumption for
+wearable assistive devices.
+
+% ---------------------------------------------------------------
+\section*{Acknowledgment}
+
+The authors thank Dr.\ Roopa T.S.\ for guidance throughout this work, Dr.\ Kariyappa
+for panel review, and Prof.\ Narashimaraja P.\ for the organized \LaTeX{} template.
+This work was carried out at RV College of Engineering, Bengaluru, under the
+interdisciplinary project programme (XX367P) for the academic year 2025--26.
+
+% ---------------------------------------------------------------
+\begin{thebibliography}{00}
+
+\bibitem{radford2021clip}
+A.\ Radford, J.\ W.\ Kim, C.\ Hallacy, A.\ Ramesh, G.\ Goh, S.\ Agarwal,
+G.\ Sastry, A.\ Askell, P.\ Mishkin, J.\ Clark, G.\ Krueger, and I.\ Sutskever,
+``Learning transferable visual models from natural language supervision,''
+in \emph{Proc.\ Int.\ Conf.\ Mach.\ Learn.\ (ICML)}, 2021, pp.\ 8748--8763.
+
+\bibitem{li2022grounded}
+L.\ Li, P.\ Zhang, H.\ Zhang, J.\ Yang, C.\ Li, Y.\ Zhong, L.\ Wang, L.\ Yuan,
+L.\ Zhang, J.\ N.\ Hwang, K.\ Chang, and J.\ Gao,
+``Grounded language-image pre-training,''
+in \emph{Proc.\ IEEE/CVF Conf.\ Comput.\ Vis.\ Pattern Recognit.\ (CVPR)},
+2022, pp.\ 10965--10975.
+
+\bibitem{cheng2024yoloworld}
+T.\ Cheng, L.\ Song, Y.\ Ge, W.\ Liu, X.\ Wang, and Y.\ Shan,
+``YOLO-World: Real-time open-vocabulary object detection,''
+in \emph{Proc.\ IEEE/CVF Conf.\ Comput.\ Vis.\ Pattern Recognit.\ (CVPR)},
+2024, pp.\ 16901--16911.
+
+\bibitem{vasu2023mobileclip}
+P.\ K.\ A.\ Vasu, H.\ Fathi, J.\ Gao, O.\ Tuzel, and A.\ Ranjan,
+``MobileCLIP: Fast image-text models through multi-modal reinforced training,''
+in \emph{Proc.\ IEEE/CVF Conf.\ Comput.\ Vis.\ Pattern Recognit.\ (CVPR)},
+2024, pp.\ 15963--15972.
+
+\bibitem{yang2022rosetta}
+Z.\ Yang, Y.\ Zhu, Y.\ Wu, M.\ Bain, F.\ Zhan, J.\ Li, and B.\ Shi,
+``ROSETTA: Self-supervised speech and text joint learning for spoken language
+understanding,'' \emph{arXiv preprint arXiv:2204.01581}, 2022.
+
+\bibitem{rao2021dynamicvit}
+Y.\ Rao, W.\ Zhao, B.\ Liu, J.\ Lu, J.\ Zhou, and C.-J.\ Hsieh,
+``DynamicViT: Efficient vision transformers with dynamic token sparsification,''
+in \emph{Adv.\ Neural Inf.\ Process.\ Syst.\ (NeurIPS)}, vol.\ 34, 2021,
+pp.\ 13937--13949.
+
+\bibitem{sawatzky2019affordance}
+J.\ Sawatzky, A.\ Srikantha, and J.\ Gall,
+``Affordance detection in RGB-D images,''
+in \emph{Proc.\ IEEE Conf.\ Comput.\ Vis.\ Pattern Recognit.\ Workshops
+(CVPRW)}, 2019, pp.\ 0--0.
+
+\bibitem{jocher2023yolov8}
+G.\ Jocher, A.\ Chaurasia, and J.\ Qiu,
+``Ultralytics YOLOv8,'' 2023. [Online].
+Available: \url{https://github.com/ultralytics/ultralytics}
+
+\bibitem{lin2014coco}
+T.-Y.\ Lin, M.\ Maire, S.\ Belongie, L.\ Bourdev, R.\ Girshick, J.\ Hays,
+P.\ Perona, D.\ Ramanan, C.\ L.\ Zitnick, and P.\ Dollar,
+``Microsoft COCO: Common objects in context,''
+in \emph{Proc.\ Eur.\ Conf.\ Comput.\ Vis.\ (ECCV)}, 2014, pp.\ 740--755.
+
+\end{thebibliography}
+
+\end{document}
