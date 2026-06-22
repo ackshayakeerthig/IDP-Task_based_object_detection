@@ -1,0 +1,9 @@
+streamlit
+torch
+torchvision
+ultralytics
+opencv-python
+Pillow
+numpy
+matplotlib
+git+https://github.com/openai/CLIP.git
